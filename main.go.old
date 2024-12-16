@@ -1,0 +1,129 @@
+package main
+
+import (
+	"encoding/json"
+	"flag"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/mp3"
+	"github.com/faiface/beep/speaker"
+)
+
+type TimeResponse struct {
+	CurrentTime string `json:"currentTime"`
+}
+
+var timestamp = flag.String("time", "08:00:00", "Time to start the sound")
+var day = flag.Int("day", 0, "Day to start the sound")
+
+//var ogame = flag.Int("ogame", 20, "offset game")
+
+func main() {
+
+	flag.Parse()
+
+	go func() {
+		http.HandleFunc("/time", timeHandler)
+		if err := http.ListenAndServe(":8080", nil); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	var partsInt []int
+	parts := strings.Split(*timestamp, ":")
+
+	for _, part := range parts {
+		partInt, err := strconv.Atoi(part)
+		if err != nil {
+			log.Fatal(err)
+		}
+		partsInt = append(partsInt, partInt)
+	}
+
+	// Open the MP3 file.
+	f1, err := os.Open("startkamp.mp3")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f1.Close()
+
+	f2, err := os.Open("stoppkamp.mp3")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Decode the MP3 file.
+	streamer1, format, err := mp3.Decode(f1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer streamer1.Close()
+
+	streamer2, _, err := mp3.Decode(f2)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer streamer2.Close()
+
+	// Initialize the speaker with the sample rate of the MP3.
+	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+
+	// Set the initial start time for the matches.
+	startTime := time.Date(2024, time.April, *day, partsInt[0], partsInt[1], partsInt[2], 0, time.Local) // Matches start at 08:00
+	now := time.Now()
+	if startTime.Before(now) {
+		log.Fatal("Start time is in the past")
+	}
+
+	// Calculate the delay until the initial start time.
+	initialDelay := startTime.Sub(now)
+	time.Sleep(initialDelay)
+
+	// Start the cycle of playing sound for matches and breaks.
+	for {
+		// Start the timer for the match or rest duration from the moment the sound starts.
+		startTime = time.Now()
+		play(streamer1)
+		adjustDuration(startTime, 18*time.Minute) // Match duration
+
+		startTime = time.Now()
+		play(streamer2)
+		adjustDuration(startTime, 2*time.Minute) // Rest duration
+	}
+}
+
+func play(streamer beep.StreamSeekCloser) {
+	// Reset the streamer to the start.
+	if err := streamer.Seek(0); err != nil {
+		log.Fatal(err)
+	}
+
+	// Play the stream and wait for it to finish before returning.
+	done := make(chan bool)
+	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+		done <- true
+	})))
+	<-done
+}
+
+// adjustDuration calculates how long to sleep after the sound finishes to ensure precise timing.
+func adjustDuration(startTime time.Time, intendedDuration time.Duration) {
+	elapsed := time.Since(startTime)
+	if elapsed < intendedDuration {
+		time.Sleep(intendedDuration - elapsed)
+	}
+}
+
+func timeHandler(w http.ResponseWriter, r *http.Request) {
+	currentTime := time.Now().Format()
+	response := TimeResponse{CurrentTime: currentTime}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}

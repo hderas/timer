@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Football Match Timer</title>
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/styles.css">
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Meta tag for responsive design -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <!-- Header with Dark Mode Toggle and Logout in Top Right Corner -->
+    <div class="position-fixed top-0 end-0 p-3 d-flex align-items-center">
+        <!-- Dark Mode Toggle -->
+        <div class="form-check form-switch me-3">
+            <input class="form-check-input" type="checkbox" id="darkModeToggle">
+            <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
+        </div>
+        <!-- Logout Button -->
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <!-- Centered container -->
+    <div class="container py-5" style="max-width: 800px;">
+        <h1 class="mb-4 text-center">Football Match Timer</h1>
+
+        <!-- Configuration Form -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form id="configForm" class="row g-3">
+                    <div class="col-sm-6">
+                        <label for="day" class="form-label">Day</label>
+                        <input type="date" id="day" class="form-control">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="timestamp" class="form-label">Start Time</label>
+                        <input type="time" id="timestamp" class="form-control">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="matchDuration" class="form-label">Match Duration (minutes)</label>
+                        <input type="number" id="matchDuration" class="form-control" value="18">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="pauseDuration" class="form-label">Pause Duration (minutes)</label>
+                        <input type="number" id="pauseDuration" class="form-control" value="2">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="d-flex justify-content-center flex-wrap mb-4">
+            <button id="startButton" type="button" class="btn btn-success btn-lg me-0 me-md-3 mb-3 mb-md-0">
+                <i class="fas fa-play"></i> Start
+            </button>
+            <button id="stopButton" type="button" class="btn btn-danger btn-lg me-0 me-md-3 mb-3 mb-md-0">
+                <i class="fas fa-stop"></i> Stop
+            </button>
+            <!-- Clear Events Button -->
+            <button id="clearLogsButton" type="button" class="btn btn-secondary btn-lg">
+                <i class="fas fa-trash-alt"></i> Clear Events
+            </button>
+        </div>
+
+        <!-- Status Message -->
+        <p id="statusMessage" class="text-center fs-5 fw-semibold">Timer is stopped.</p>
+
+        <!-- Clock Display -->
+        <h2 id="clock" class="text-center display-4 text-primary"></h2>
+
+        <!-- Event Log Container -->
+        <div class="flex-grow-1 overflow-auto mt-3">
+            <h3>Event Log:</h3>
+            <ul id="logList" class="list-group shadow-sm"></ul>
+        </div>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="/static/script.js"></script>
+
+    <!-- Bootstrap Bundle with Popper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
